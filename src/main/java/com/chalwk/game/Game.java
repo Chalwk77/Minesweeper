@@ -3,6 +3,7 @@
 package com.chalwk.game;
 
 import com.chalwk.util.GameConfig;
+import com.chalwk.util.Logging.Logger;
 import com.chalwk.util.settings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -65,21 +66,16 @@ public class Game {
 
     public void startGame() {
         this.startTime = new Date();
-
-        config.event.getChannel()
-                .sendMessageEmbeds(createEmbedBuilder().build())
+        config.event.replyEmbeds(createEmbedBuilder().build())
                 .submit()
                 .handle((message, error) -> {
                     if (error != null) {
-                        System.out.println("Error sending message: " + error.getMessage());
-                        return null;
+                        Logger.warning("Failed to send message: " + error.getMessage());
                     } else {
-                        System.out.println("Message sent: " + message.getId());
                         setEmbedID(message.getId());
-                        return null;
                     }
+                    return null;
                 });
-
         scheduleGameEndTask();
     }
 
