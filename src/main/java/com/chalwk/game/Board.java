@@ -7,19 +7,27 @@ import java.util.Random;
 
 public class Board {
 
+    private static final double MINE_DENSITY = 0.15;
     private final Cell[][] board;
     private final int rows;
     private final int cols;
+    private final int totalCells;
+    private BoardState state;
+    private int revealed;
+    private int mineCount;
+    private boolean flagged;
 
     public Board(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
         this.board = new Cell[rows][cols];
+        this.totalCells = rows * cols;
+        this.revealed = 0;
+        this.state = BoardState.ONGOING;
         initializeBoard();
     }
 
     private void initializeBoard() {
-
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 board[i][j] = new Cell();
@@ -32,7 +40,7 @@ public class Board {
 
     public void placeMines() {
         Random random = new Random();
-        int numMines = (int) (rows * cols * 0.15);
+        int numMines = (int) (rows * cols * MINE_DENSITY);
         int minesPlaced = 0;
         while (minesPlaced <= numMines) {
             int row = random.nextInt(rows);
@@ -42,23 +50,40 @@ public class Board {
                 minesPlaced++;
             }
         }
+        this.mineCount = numMines;
+    }
+
+    public void flagCell(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            return;
+        }
+        board[row][col].setFlagged(true);
+    }
+
+    private int countAdjacentMines(int row, int col) {
+        int count = 0;
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                int newRow = row + i;
+                int newCol = col + j;
+                if (newRow < 0 || newRow >= rows || newCol < 0 || newCol >= cols) {
+                    continue;
+                }
+                if (board[newRow][newCol].isMine()) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     public void calculateHints() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                int hint = 0;
-                if (board[i][j].isMine()) {
-                    continue;
+                if (!board[i][j].isMine()) {
+                    int hint = countAdjacentMines(i, j);
+                    board[i][j].setHint(hint);
                 }
-                for (int r = i - 1; r <= i + 1; r++) {
-                    for (int c = j - 1; c <= j + 1; c++) {
-                        if (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c].isMine()) {
-                            hint++;
-                        }
-                    }
-                }
-                board[i][j].setHint(hint);
             }
         }
     }
@@ -67,28 +92,58 @@ public class Board {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             return;
         }
-        board[row][col].setRevealed(true);
-        if (board[row][col].getHint() == 0) {
-            for (int r = row - 1; r <= row + 1; r++) {
-                for (int c = col - 1; c <= col + 1; c++) {
-                    if (r >= 0 && r < rows && c >= 0 && c < cols && !board[r][c].isRevealed()) {
-                        revealCell(r, c);
-                    }
-                }
+        Cell cell = board[row][col];
+        if (cell.isMine()) {
+            state = BoardState.LOST;
+            return;
+        }
+        if (cell.isRevealed()) {
+            return;
+        }
+        cell.setRevealed(true);
+        if (cell.isEmpty()) {
+            revealEmptyCell(row, col);
+        }
+        revealed++;
+        if (revealed == totalCells - mineCount) {
+            state = BoardState.WON;
+        }
+    }
+
+
+    public BoardState getState() {
+        return state;
+    }
+
+    public void setState(BoardState state) {
+        this.state = state;
+    }
+
+    private void revealEmptyCell(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            return;
+        }
+        Cell cell = board[row][col];
+        if (!cell.isEmpty()) {
+            return;
+        }
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                revealCell(row + i, col + j);
             }
         }
     }
 
     public boolean isGameWon() {
-        int unrevealedCells = 0;
-        for (Cell[] row : board) {
-            for (Cell cell : row) {
-                if (!cell.isMine() && !cell.isRevealed()) {
-                    unrevealedCells++;
-                }
-            }
+        return state == BoardState.WON;
+    }
+
+    public boolean isGameLost(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+            return false;
         }
-        return unrevealedCells == 0;
+        Cell cell = board[row][col];
+        return cell.isMine() && cell.isRevealed();
     }
 
     public void revealAllMines() {
@@ -112,7 +167,7 @@ public class Board {
         }
         sb.append("\n");
 
-        // Rows with cell contents
+        // Rows with cell contents (include 🚩 for flagged cells)
         for (int i = 0; i < rows; i++) {
             sb.append(i + " ");
             for (int j = 0; j < cols; j++) {
@@ -122,6 +177,8 @@ public class Board {
                     } else {
                         sb.append(board[i][j].getHint() + " ");
                     }
+                } else if (board[i][j].isFlagged()) {
+                    sb.append("🚩 ");
                 } else {
                     sb.append(". ");
                 }
@@ -133,35 +190,39 @@ public class Board {
         return sb.toString();
     }
 
-    public Cell getCell(int row, int col) {
-        return board[row][col];
-    }
-
-    public int getRows() {
-        return rows;
-    }
-
-    public int getCols() {
-        return cols;
-    }
-
     public static class Cell {
-        private boolean mine;
-        private int hint;
-        private boolean revealed;
 
-        public Cell() {
-            this.mine = false;
-            this.hint = 0;
-            this.revealed = false;
+        private boolean mine;
+        private boolean flagged;
+        private boolean revealed;
+        private int hint;
+
+        public void setMine(boolean mine) {
+            this.mine = mine;
+        }
+
+        public boolean isEmpty() {
+            return !this.mine && !this.revealed;
         }
 
         public boolean isMine() {
             return mine;
         }
 
-        public void setMine(boolean mine) {
-            this.mine = mine;
+        public boolean isFlagged() {
+            return flagged;
+        }
+
+        public void setFlagged(boolean flagged) {
+            this.flagged = flagged;
+        }
+
+        public void setRevealed(boolean revealed) {
+            this.revealed = revealed;
+        }
+
+        public boolean isRevealed() {
+            return revealed;
         }
 
         public int getHint() {
@@ -170,14 +231,6 @@ public class Board {
 
         public void setHint(int hint) {
             this.hint = hint;
-        }
-
-        public boolean isRevealed() {
-            return revealed;
-        }
-
-        public void setRevealed(boolean revealed) {
-            this.revealed = revealed;
         }
     }
 }

@@ -7,6 +7,7 @@ import com.chalwk.CommandManager.CommandListener;
 import com.chalwk.Listeners.EventListeners;
 import com.chalwk.commands.NewGame;
 import com.chalwk.commands.channel;
+import com.chalwk.commands.flag;
 import com.chalwk.commands.reveal;
 import com.chalwk.game.GameManager;
 import com.chalwk.util.authentication;
@@ -82,6 +83,7 @@ public class BotInitializer {
     private void registerCommands(ShardManager shardManager) {
         CommandListener commands = new CommandListener();
         commands.add(new channel(gameManager));
+        commands.add(new flag(gameManager));
         commands.add(new NewGame(gameManager));
         commands.add(new reveal(gameManager));
         shardManager.addEventListener(commands);

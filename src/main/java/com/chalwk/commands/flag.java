@@ -4,7 +4,6 @@ package com.chalwk.commands;
 
 import com.chalwk.CommandManager.CommandCooldownManager;
 import com.chalwk.CommandManager.CommandInterface;
-import com.chalwk.game.BoardState;
 import com.chalwk.game.Game;
 import com.chalwk.game.GameManager;
 import com.chalwk.util.settings;
@@ -15,30 +14,31 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.List;
 
-public class reveal implements CommandInterface {
+public class flag implements CommandInterface {
 
     private static final CommandCooldownManager COOLDOWN_MANAGER = new CommandCooldownManager();
     private final GameManager gameManager;
 
-    public reveal(GameManager gameManager) {
+    public flag(GameManager gameManager) {
         this.gameManager = gameManager;
     }
 
     @Override
     public String getName() {
-        return "reveal";
+        return "flag";
     }
 
     @Override
     public String getDescription() {
-        return "Reveal a cell on the board.";
+        return "Flag a cell on the board.";
     }
 
     @Override
     public List<OptionData> getOptions() {
         return List.of(
                 new OptionData(OptionType.INTEGER, "rows", "The row number", true),
-                new OptionData(OptionType.INTEGER, "cols", "The col number", true)
+                new OptionData(OptionType.INTEGER, "cols", "The col number", true),
+                new OptionData(OptionType.BOOLEAN, "flag", "Flag the cell", true)
         );
     }
 
@@ -57,23 +57,11 @@ public class reveal implements CommandInterface {
 
         int row = event.getOption("rows").getAsInt();
         int col = event.getOption("cols").getAsInt();
+        boolean flagged = event.getOption("flagged").getAsBoolean();
 
         Game game = gameManager.getGame(player);
-        game.board.revealCell(row, col);
-
-
-        BoardState state;
-        if (game.board.isGameWon()) { // player won
-            state = BoardState.WIN;
-            game.board.revealAllMines();
-        } else if (game.board.isGameLost(row, col)) { // player lost
-            state = BoardState.LOSE;
-            game.board.revealAllMines();
-        } else {
-            state = game.board.getState(); // Get the current state from the board
-        }
-
-        game.updateEmbed(state);
+        game.board.flagCell(row, col, flagged);
+        game.updateEmbed(0);
 
         COOLDOWN_MANAGER.setCooldown(getName(), event.getUser());
     }

@@ -32,7 +32,7 @@ public class Game {
         startGame();
     }
 
-    public void updateEmbed() {
+    public void updateEmbed(BoardState state) {
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle("\uD83D\uDCA3\uD83D\uDCA5 MINESWEEPER \uD83D\uDCA5\uD83D\uDCA3")
@@ -40,6 +40,15 @@ public class Game {
                 .addField("Board:", board.buildBoardString(), false)
                 .setFooter("Commands: /reveal <row> <col>, /flag <row> <col>")
                 .setColor(Color.BLUE);
+
+        if (state == BoardState.ONGOING) {
+            // The game is still in progress
+            // Do nothing, as the footer and color are already set
+        } else if (state == BoardState.WIN) {
+            embed.setFooter("Congratulations! You won!").setColor(Color.GREEN);
+        } else if (state == BoardState.LOSE) {
+            embed.setFooter("Game Over! You hit a mine!").setColor(Color.RED);
+        }
 
         this.config.event.getChannel()
                 .retrieveMessageById(getEmbedID())
