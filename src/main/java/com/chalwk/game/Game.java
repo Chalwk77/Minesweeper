@@ -40,10 +40,10 @@ public class Game {
                     if (error != null) {
                         Logger.warning("Failed to send message: " + error.getMessage());
                     } else {
-                        this.sentMessageID = message.getId();
                         if (deletePrevious) {
                             event.getChannel().deleteMessageById(this.sentMessageID).submit();
                         }
+                        this.sentMessageID = message.getId();
                     }
                     return null;
                 });
