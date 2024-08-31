@@ -38,9 +38,11 @@ public class Game {
         if (state == BoardState.ONGOING) {
             embed.setColor(Color.BLUE);
         } else if (state == BoardState.WON) {
-            embed.setFooter("Congratulations! You won!").setColor(Color.GREEN);
+            embed.setFooter("CONGRATULATIONS! You won!").setColor(Color.GREEN);
+            endGame(config.player);
         } else if (state == BoardState.LOST) {
-            embed.setFooter("Game Over! You hit a mine!").setColor(Color.RED);
+            embed.setFooter("GAME OVER! You hit a mine!").setColor(Color.RED);
+            endGame(config.player);
         }
 
         this.config.event.getChannel()
@@ -82,10 +84,6 @@ public class Game {
     public void endGame(User player) {
         cancelGameEndTask();
         gameManager.removeGame(player);
-    }
-
-    public User getPlayer() {
-        return config.player;
     }
 
     private void scheduleGameEndTask() {
