@@ -172,7 +172,6 @@ public class Board {
     public String buildBoardString() {
         StringBuilder sb = new StringBuilder();
 
-        // Header row with column indices
         sb.append("```\n");
         sb.append("   ");
         for (int j = 0; j < cols; j++) {
@@ -180,20 +179,23 @@ public class Board {
         }
         sb.append("\n");
 
-        // Rows with cell contents
         for (int i = 0; i < rows; i++) {
             sb.append(i).append(" ");
             for (int j = 0; j < cols; j++) {
-                if (board[i][j].isRevealed()) {
-                    if (board[i][j].isMine()) {
+                Cell cell = board[i][j];
+
+                if (cell.isRevealed()) {
+                    if (cell.isMine()) {
                         sb.append("[*] "); // this represents a mine
+                    } else if (cell.getHint() == 0) {
+                        sb.append("[ ] "); // this represents a cell with no adjacent mines
                     } else {
-                        sb.append("[").append(board[i][j].getHint()).append("]").append(" "); // hint (number of adjacent mines)
+                        sb.append("[").append(cell.getHint()).append("] "); // hint (number of adjacent mines)
                     }
-                } else if (board[i][j].isFlagged()) {
+                } else if (cell.isFlagged()) {
                     sb.append("[?] "); // this represents a flag
                 } else {
-                    sb.append("[.] "); // this represents an empty cell
+                    sb.append("[.] "); // this represents an unrevealed empty cell
                 }
             }
             sb.append("\n");
@@ -202,6 +204,7 @@ public class Board {
         sb.append("```");
         return sb.toString();
     }
+
 
     public static class Cell {
 
