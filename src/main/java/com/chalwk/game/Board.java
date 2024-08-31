@@ -57,7 +57,7 @@ public class Board {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             return;
         }
-        board[row][col].setFlagged(true);
+        board[row][col].setFlagged(flagged);
     }
 
     private int countAdjacentMines(int row, int col) {
@@ -173,14 +173,14 @@ public class Board {
             for (int j = 0; j < cols; j++) {
                 if (board[i][j].isRevealed()) {
                     if (board[i][j].isMine()) {
-                        sb.append("* ");
+                        sb.append("* "); // this represents a mine
                     } else {
-                        sb.append(board[i][j].getHint() + " ");
+                        sb.append(board[i][j].getHint() + " "); // hint (number of adjacent mines)
                     }
                 } else if (board[i][j].isFlagged()) {
-                    sb.append("🚩 ");
+                    sb.append("🚩"); // this represents a flag
                 } else {
-                    sb.append(". ");
+                    sb.append(". "); // this represents an empty cell
                 }
             }
             sb.append("\n");

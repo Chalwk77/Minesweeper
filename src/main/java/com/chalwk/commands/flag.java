@@ -57,7 +57,7 @@ public class flag implements CommandInterface {
 
         int row = event.getOption("rows").getAsInt();
         int col = event.getOption("cols").getAsInt();
-        boolean flagged = event.getOption("flagged").getAsBoolean();
+        boolean flagged = event.getOption("flag").getAsBoolean();
 
         Game game = gameManager.getGame(player);
         game.board.flagCell(row, col, flagged);
