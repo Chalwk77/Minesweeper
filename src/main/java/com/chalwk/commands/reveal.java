@@ -63,11 +63,12 @@ public class reveal implements CommandInterface {
 
 
         BoardState state;
+
         if (game.board.isGameWon()) { // player won
-            state = BoardState.WIN;
+            state = BoardState.WON;
             game.board.revealAllMines();
         } else if (game.board.isGameLost(row, col)) { // player lost
-            state = BoardState.LOSE;
+            state = BoardState.LOST;
             game.board.revealAllMines();
         } else {
             state = game.board.getState(); // Get the current state from the board

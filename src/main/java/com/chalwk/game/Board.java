@@ -53,7 +53,7 @@ public class Board {
         this.mineCount = numMines;
     }
 
-    public void flagCell(int row, int col) {
+    public void flagCell(int row, int col, boolean flagged) {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             return;
         }

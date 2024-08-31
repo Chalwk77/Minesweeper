@@ -44,9 +44,9 @@ public class Game {
         if (state == BoardState.ONGOING) {
             // The game is still in progress
             // Do nothing, as the footer and color are already set
-        } else if (state == BoardState.WIN) {
+        } else if (state == BoardState.WON) {
             embed.setFooter("Congratulations! You won!").setColor(Color.GREEN);
-        } else if (state == BoardState.LOSE) {
+        } else if (state == BoardState.LOST) {
             embed.setFooter("Game Over! You hit a mine!").setColor(Color.RED);
         }
 
