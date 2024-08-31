@@ -43,10 +43,6 @@ public class BotInitializer {
         this.token = authentication.getToken();
     }
 
-    public static GameManager getGameManager() {
-        return gameManager;
-    }
-
     public static ShardManager getShardManager() {
         return shardManager;
     }

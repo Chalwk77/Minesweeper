@@ -13,16 +13,6 @@ import java.io.IOException;
 public class Main {
 
     /**
-     * Initializes the bot by creating a BotInitializer instance and calling its initializeBot method.
-     *
-     * @throws IOException if there's an error reading the token or initializing the bot.
-     */
-    public static void initializeBot() throws IOException {
-        BotInitializer botInitializer = new BotInitializer();
-        botInitializer.initializeBot();
-    }
-
-    /**
      * The main method of the Virtual Pets game project.
      * It calls the initializeBot method to start the bot initialization process.
      *
@@ -30,7 +20,7 @@ public class Main {
      */
     public static void main(String[] args) {
         try {
-            initializeBot();
+            new BotInitializer().initializeBot();
         } catch (IOException e) {
             System.err.println("Error reading token or initializing the bot: " + e.getMessage());
         }

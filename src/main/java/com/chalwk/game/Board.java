@@ -115,10 +115,6 @@ public class Board {
         return state;
     }
 
-    public void setState(BoardState state) {
-        this.state = state;
-    }
-
     private void revealEmptyCell(int row, int col) {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
             return;
@@ -161,26 +157,26 @@ public class Board {
 
         // Header row with column indices
         sb.append("```\n");
-        sb.append("  ");
+        sb.append("   ");
         for (int j = 0; j < cols; j++) {
-            sb.append(j + " ");
+            sb.append(j).append("   ");
         }
         sb.append("\n");
 
-        // Rows with cell contents (include 🚩 for flagged cells)
+        // Rows with cell contents
         for (int i = 0; i < rows; i++) {
-            sb.append(i + " ");
+            sb.append(i).append(" ");
             for (int j = 0; j < cols; j++) {
                 if (board[i][j].isRevealed()) {
                     if (board[i][j].isMine()) {
-                        sb.append("* "); // this represents a mine
+                        sb.append("[*] "); // this represents a mine
                     } else {
-                        sb.append(board[i][j].getHint() + " "); // hint (number of adjacent mines)
+                        sb.append(board[i][j].getHint()).append(" "); // hint (number of adjacent mines)
                     }
                 } else if (board[i][j].isFlagged()) {
-                    sb.append("🚩"); // this represents a flag
+                    sb.append("[?] "); // this represents a flag
                 } else {
-                    sb.append(". "); // this represents an empty cell
+                    sb.append("[.] "); // this represents an empty cell
                 }
             }
             sb.append("\n");
