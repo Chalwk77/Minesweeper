@@ -50,6 +50,7 @@ public class Game {
     }
 
     public void updateEmbed(BoardState state, SlashCommandInteractionEvent event) {
+
         EmbedBuilder embed = createEmbedBuilder();
 
         if (state == BoardState.ONGOING) {
@@ -69,7 +70,7 @@ public class Game {
         return new EmbedBuilder()
                 .setTitle("\uD83D\uDCA3\uD83D\uDCA5 MINESWEEPER \uD83D\uDCA5\uD83D\uDCA3")
                 .setDescription("Game started by " + this.config.player.getAsMention())
-                .addField("Board:", board.buildBoardString(), false)
+                .addField("Board:", this.board.buildBoardString(), false)
                 .setFooter("""
                         Commands:
                         - /reveal <row> <col>

@@ -15,7 +15,6 @@ public class Board {
     private BoardState state;
     private int revealed;
     private int mineCount;
-    private boolean flagged;
 
     public Board(int rows, int cols) {
         this.rows = rows;
@@ -88,31 +87,45 @@ public class Board {
         }
     }
 
+    private boolean isValidCoordinate(int row, int col) {
+        return row >= 0 && row < rows && col >= 0 && col < cols;
+    }
+
     public void revealCell(int row, int col) {
-        if (row < 0 || row >= rows || col < 0 || col >= cols) {
-            return;
-        }
         Cell cell = board[row][col];
         if (cell.isMine()) {
             state = BoardState.LOST;
+            revealAllMines();
             return;
         }
         if (cell.isRevealed()) {
             return;
         }
         cell.setRevealed(true);
+        revealed++;
         if (cell.isEmpty()) {
             revealEmptyCell(row, col);
+        } else if (cell.getHint() == 0) {
+            revealEmptyCell(row, col);
         }
-        revealed++;
+
+        // Update neighboring cells' reveal status if they are not mines
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if ((i == 0 && j == 0) || !isValidCoordinate(row + i, col + j)) {
+                    continue;
+                }
+                Cell neighbor = board[row + i][col + j];
+                if (!neighbor.isMine()) {
+                    neighbor.setRevealed(true);
+                }
+            }
+        }
+
         if (revealed == totalCells - mineCount) {
             state = BoardState.WON;
+            revealAllMines();
         }
-    }
-
-
-    public BoardState getState() {
-        return state;
     }
 
     private void revealEmptyCell(int row, int col) {
@@ -130,6 +143,20 @@ public class Board {
         }
     }
 
+    public void revealAllMines() {
+        for (Cell[] row : board) {
+            for (Cell cell : row) {
+                if (cell.isMine()) {
+                    cell.setRevealed(true);
+                }
+            }
+        }
+    }
+
+    public BoardState getState() {
+        return state;
+    }
+
     public boolean isGameWon() {
         return state == BoardState.WON;
     }
@@ -140,16 +167,6 @@ public class Board {
         }
         Cell cell = board[row][col];
         return cell.isMine() && cell.isRevealed();
-    }
-
-    public void revealAllMines() {
-        for (Cell[] row : board) {
-            for (Cell cell : row) {
-                if (cell.isMine()) {
-                    cell.setRevealed(true);
-                }
-            }
-        }
     }
 
     public String buildBoardString() {
@@ -171,7 +188,7 @@ public class Board {
                     if (board[i][j].isMine()) {
                         sb.append("[*] "); // this represents a mine
                     } else {
-                        sb.append("[" + board[i][j].getHint() + "]").append(" "); // hint (number of adjacent mines)
+                        sb.append("[").append(board[i][j].getHint()).append("]").append(" "); // hint (number of adjacent mines)
                     }
                 } else if (board[i][j].isFlagged()) {
                     sb.append("[?] "); // this represents a flag
