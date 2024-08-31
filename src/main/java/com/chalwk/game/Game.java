@@ -8,6 +8,7 @@ import com.chalwk.util.settings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import java.awt.*;
 import java.util.Date;
@@ -21,9 +22,9 @@ public class Game {
     public final Board board;
     private final GameManager gameManager;
     private final GameConfig config;
-    private String embedID;
     private Date startTime;
     private TimerTask gameEndTask;
+    private InteractionHook sentMessage;
 
     public Game(GameConfig config, GameManager gameManager) {
         this.config = config;
@@ -45,9 +46,7 @@ public class Game {
             endGame(config.player);
         }
 
-        this.config.event.getChannel()
-                .retrieveMessageById(getEmbedID())
-                .queue(message -> message.editMessageEmbeds(embed.build()).queue());
+        this.sentMessage.editOriginalEmbeds(embed.build()).queue();
     }
 
     private EmbedBuilder createEmbedBuilder() {
@@ -62,10 +61,6 @@ public class Game {
                         """).setColor(Color.BLUE);
     }
 
-    private String getEmbedID() {
-        return embedID;
-    }
-
     public void startGame() {
         this.startTime = new Date();
         config.event.replyEmbeds(createEmbedBuilder().build())
@@ -74,7 +69,7 @@ public class Game {
                     if (error != null) {
                         Logger.warning("Failed to send message: " + error.getMessage());
                     } else {
-                        setEmbedID(message.getId());
+                        this.sentMessage = message;
                     }
                     return null;
                 });
@@ -104,10 +99,6 @@ public class Game {
 
         Timer gameEndTimer = new Timer();
         gameEndTimer.scheduleAtFixedRate(gameEndTask, 0, 1000);
-    }
-
-    private void setEmbedID(String embedID) {
-        this.embedID = embedID;
     }
 
     private boolean isTimeUp() {
