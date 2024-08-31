@@ -8,7 +8,7 @@ import com.chalwk.util.settings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.awt.*;
 import java.util.Date;
@@ -24,16 +24,32 @@ public class Game {
     private final GameConfig config;
     private Date startTime;
     private TimerTask gameEndTask;
-    private InteractionHook sentMessage;
+    private String sentMessageID;
 
-    public Game(GameConfig config, GameManager gameManager) {
+    public Game(GameConfig config, GameManager gameManager, SlashCommandInteractionEvent event) {
         this.config = config;
         this.gameManager = gameManager;
         this.board = new Board(config.rows, config.cols);
-        startGame();
+        startGame(event);
     }
 
-    public void updateEmbed(BoardState state) {
+    public void sendEmbedMessage(SlashCommandInteractionEvent event, EmbedBuilder embed, boolean deletePrevious) {
+        event.replyEmbeds(embed.build())
+                .submit()
+                .handle((message, error) -> {
+                    if (error != null) {
+                        Logger.warning("Failed to send message: " + error.getMessage());
+                    } else {
+                        this.sentMessageID = message.getId();
+                        if (deletePrevious) {
+                            event.getChannel().deleteMessageById(this.sentMessageID).submit();
+                        }
+                    }
+                    return null;
+                });
+    }
+
+    public void updateEmbed(BoardState state, SlashCommandInteractionEvent event) {
         EmbedBuilder embed = createEmbedBuilder();
 
         if (state == BoardState.ONGOING) {
@@ -46,7 +62,7 @@ public class Game {
             endGame(config.player);
         }
 
-        this.sentMessage.editOriginalEmbeds(embed.build()).queue();
+        sendEmbedMessage(event, embed, true);
     }
 
     private EmbedBuilder createEmbedBuilder() {
@@ -61,18 +77,9 @@ public class Game {
                         """).setColor(Color.BLUE);
     }
 
-    public void startGame() {
+    public void startGame(SlashCommandInteractionEvent event) {
         this.startTime = new Date();
-        config.event.replyEmbeds(createEmbedBuilder().build())
-                .submit()
-                .handle((message, error) -> {
-                    if (error != null) {
-                        Logger.warning("Failed to send message: " + error.getMessage());
-                    } else {
-                        this.sentMessage = message;
-                    }
-                    return null;
-                });
+        sendEmbedMessage(event, createEmbedBuilder(), false);
         scheduleGameEndTask();
     }
 

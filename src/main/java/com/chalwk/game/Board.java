@@ -171,7 +171,7 @@ public class Board {
                     if (board[i][j].isMine()) {
                         sb.append("[*] "); // this represents a mine
                     } else {
-                        sb.append(board[i][j].getHint()).append(" "); // hint (number of adjacent mines)
+                        sb.append("[" + board[i][j].getHint() + "]").append(" "); // hint (number of adjacent mines)
                     }
                 } else if (board[i][j].isFlagged()) {
                     sb.append("[?] "); // this represents a flag
@@ -193,16 +193,16 @@ public class Board {
         private boolean revealed;
         private int hint;
 
-        public void setMine(boolean mine) {
-            this.mine = mine;
-        }
-
         public boolean isEmpty() {
             return !this.mine && !this.revealed;
         }
 
         public boolean isMine() {
             return mine;
+        }
+
+        public void setMine(boolean mine) {
+            this.mine = mine;
         }
 
         public boolean isFlagged() {
@@ -213,12 +213,12 @@ public class Board {
             this.flagged = flagged;
         }
 
-        public void setRevealed(boolean revealed) {
-            this.revealed = revealed;
-        }
-
         public boolean isRevealed() {
             return revealed;
+        }
+
+        public void setRevealed(boolean revealed) {
+            this.revealed = revealed;
         }
 
         public int getHint() {

@@ -73,7 +73,7 @@ public class reveal implements CommandInterface {
             state = game.board.getState();
         }
 
-        game.updateEmbed(state);
+        game.updateEmbed(state, event);
 
         COOLDOWN_MANAGER.setCooldown(getName(), event.getUser());
     }

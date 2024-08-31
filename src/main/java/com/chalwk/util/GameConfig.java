@@ -14,11 +14,8 @@ public class GameConfig {
     public final int MIN_ROWS = 5;
     public final int MAX_ROWS = 10;
 
-    public final SlashCommandInteractionEvent event;
-
     public GameConfig(User player, SlashCommandInteractionEvent event) {
         this.player = player;
-        this.event = event;
         this.rows = event.getOption("rows").getAsInt();
         this.cols = event.getOption("cols").getAsInt();
     }

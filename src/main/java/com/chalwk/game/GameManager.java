@@ -4,6 +4,7 @@ package com.chalwk.game;
 
 import com.chalwk.util.GameConfig;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,8 +40,8 @@ public class GameManager {
         return games.get(player);
     }
 
-    public void createGame(GameConfig config) {
-        games.put(config.player, new Game(config, this));
+    public void createGame(GameConfig config, SlashCommandInteractionEvent event) {
+        games.put(config.player, new Game(config, this, event));
     }
 
     public Map<User, Game> getGames() {

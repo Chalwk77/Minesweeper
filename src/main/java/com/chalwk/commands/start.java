@@ -63,7 +63,7 @@ public class start implements CommandInterface {
             return;
         }
 
-        gameManager.createGame(config);
+        gameManager.createGame(config, event);
 
         COOLDOWN_MANAGER.setCooldown(getName(), event.getUser());
     }

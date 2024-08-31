@@ -61,7 +61,7 @@ public class flag implements CommandInterface {
 
         Game game = gameManager.getGame(player);
         game.board.flagCell(row, col, flagged);
-        game.updateEmbed(game.board.getState());
+        game.updateEmbed(game.board.getState(), event);
 
         COOLDOWN_MANAGER.setCooldown(getName(), event.getUser());
     }
