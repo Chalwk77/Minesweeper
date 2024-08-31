@@ -7,7 +7,6 @@ import com.chalwk.util.settings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.awt.*;
 import java.util.Date;
@@ -33,17 +32,10 @@ public class Game {
     }
 
     public void updateEmbed(BoardState state) {
-
-        EmbedBuilder embed = new EmbedBuilder()
-                .setTitle("\uD83D\uDCA3\uD83D\uDCA5 MINESWEEPER \uD83D\uDCA5\uD83D\uDCA3")
-                .setDescription("Game started by " + this.config.player.getAsMention())
-                .addField("Board:", board.buildBoardString(), false)
-                .setFooter("Commands: /reveal <row> <col>, /flag <row> <col>")
-                .setColor(Color.BLUE);
+        EmbedBuilder embed = createEmbedBuilder();
 
         if (state == BoardState.ONGOING) {
-            // The game is still in progress
-            // Do nothing, as the footer and color are already set
+            embed.setColor(Color.BLUE);
         } else if (state == BoardState.WON) {
             embed.setFooter("Congratulations! You won!").setColor(Color.GREEN);
         } else if (state == BoardState.LOST) {
@@ -55,20 +47,39 @@ public class Game {
                 .queue(message -> message.editMessageEmbeds(embed.build()).queue());
     }
 
-    public void startGame() {
+    private EmbedBuilder createEmbedBuilder() {
+        return new EmbedBuilder()
+                .setTitle("\uD83D\uDCA3\uD83D\uDCA5 MINESWEEPER \uD83D\uDCA5\uD83D\uDCA3")
+                .setDescription("Game started by " + this.config.player.getAsMention())
+                .addField("Board:", board.buildBoardString(), false)
+                .setFooter("""
+                        Commands:
+                        - /reveal <row> <col>
+                        - /flag <row> <col>
+                        """).setColor(Color.BLUE);
+    }
 
+    private String getEmbedID() {
+        return embedID;
+    }
+
+    public void startGame() {
         this.startTime = new Date();
 
-        EmbedBuilder embed = new EmbedBuilder()
-                .setTitle("\uD83D\uDCA3\uD83D\uDCA5 MINESWEEPER \uD83D\uDCA5\uD83D\uDCA3")
-                .setDescription("Game started by " + config.player.getAsMention())
-                .addField("Board:", board.buildBoardString(), false)
-                .setFooter("Commands: /reveal <row> <col>, /flag <row> <col>")
-                .setColor(Color.BLUE);
+        config.event.getChannel()
+                .sendMessageEmbeds(createEmbedBuilder().build())
+                .submit()
+                .handle((message, error) -> {
+                    if (error != null) {
+                        System.out.println("Error sending message: " + error.getMessage());
+                        return null;
+                    } else {
+                        System.out.println("Message sent: " + message.getId());
+                        setEmbedID(message.getId());
+                        return null;
+                    }
+                });
 
-        config.event.replyEmbeds(embed.build()).queue();
-
-        setMessageID(config.event);
         scheduleGameEndTask();
     }
 
@@ -101,21 +112,8 @@ public class Game {
         gameEndTimer.scheduleAtFixedRate(gameEndTask, 0, 1000);
     }
 
-    public String getEmbedID() {
-        return this.embedID;
-    }
-
     private void setEmbedID(String embedID) {
         this.embedID = embedID;
-    }
-
-    private void setMessageID(SlashCommandInteractionEvent event) {
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                setEmbedID(event.getChannel().getLatestMessageId());
-            }
-        }, 500);
     }
 
     private boolean isTimeUp() {
