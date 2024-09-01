@@ -24,16 +24,16 @@ public class GameManager {
         this.games = new HashMap<>();
     }
 
-    public void createGame(GameConfig config, SlashCommandInteractionEvent event) {
-        games.put(config.player, new Game(config, this, event));
-    }
-
     public static String getChannelID() {
         return GameManager.channelID;
     }
 
     public void setChannelID(String channelID) {
         GameManager.channelID = channelID;
+    }
+
+    public void createGame(GameConfig config, SlashCommandInteractionEvent event) {
+        games.put(config.player, new Game(config, this, event));
     }
 
     public boolean isInGame(User player) {

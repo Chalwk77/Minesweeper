@@ -23,7 +23,6 @@ public class Game {
     private final GameConfig config;
     private Date startTime;
     private TimerTask gameEndTask;
-    private String sentMessageID;
     private String embedID;
 
     public Game(GameConfig config, GameManager gameManager, SlashCommandInteractionEvent event) {
