@@ -24,6 +24,10 @@ public class GameManager {
         this.games = new HashMap<>();
     }
 
+    public void createGame(GameConfig config, SlashCommandInteractionEvent event) {
+        games.put(config.player, new Game(config, this, event));
+    }
+
     public static String getChannelID() {
         return GameManager.channelID;
     }
@@ -38,10 +42,6 @@ public class GameManager {
 
     public Game getGame(User player) {
         return games.get(player);
-    }
-
-    public void createGame(GameConfig config, SlashCommandInteractionEvent event) {
-        games.put(config.player, new Game(config, this, event));
     }
 
     public Map<User, Game> getGames() {

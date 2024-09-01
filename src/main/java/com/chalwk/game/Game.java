@@ -3,7 +3,6 @@
 package com.chalwk.game;
 
 import com.chalwk.util.GameConfig;
-import com.chalwk.util.Logging.Logger;
 import com.chalwk.util.settings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -25,6 +24,7 @@ public class Game {
     private Date startTime;
     private TimerTask gameEndTask;
     private String sentMessageID;
+    private String embedID;
 
     public Game(GameConfig config, GameManager gameManager, SlashCommandInteractionEvent event) {
         this.config = config;
@@ -33,20 +33,12 @@ public class Game {
         startGame(event);
     }
 
-    public void sendEmbedMessage(SlashCommandInteractionEvent event, EmbedBuilder embed, boolean deletePrevious) {
-        event.replyEmbeds(embed.build())
-                .submit()
-                .handle((message, error) -> {
-                    if (error != null) {
-                        Logger.warning("Failed to send message: " + error.getMessage());
-                    } else {
-                        if (deletePrevious) {
-                            event.getChannel().deleteMessageById(this.sentMessageID).submit();
-                        }
-                        this.sentMessageID = message.getId();
-                    }
-                    return null;
-                });
+    public String getEmbedID() {
+        return this.embedID;
+    }
+
+    private void setEmbedID(String embedID) {
+        this.embedID = embedID;
     }
 
     public void updateEmbed(BoardState state, SlashCommandInteractionEvent event) {
@@ -63,7 +55,9 @@ public class Game {
             endGame(config.player);
         }
 
-        sendEmbedMessage(event, embed, true);
+        event.getChannel().deleteMessageById(getEmbedID()).queue();
+        event.replyEmbeds(embed.build()).queue();
+        setMessageID(event);
     }
 
     private EmbedBuilder createEmbedBuilder() {
@@ -80,13 +74,26 @@ public class Game {
 
     public void startGame(SlashCommandInteractionEvent event) {
         this.startTime = new Date();
-        sendEmbedMessage(event, createEmbedBuilder(), false);
+
+        EmbedBuilder embed = createEmbedBuilder();
+        event.replyEmbeds(embed.build()).queue();
+
+        setMessageID(event);
         scheduleGameEndTask();
     }
 
     public void endGame(User player) {
         cancelGameEndTask();
         gameManager.removeGame(player);
+    }
+
+    private void setMessageID(SlashCommandInteractionEvent event) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                setEmbedID(event.getChannel().getLatestMessageId());
+            }
+        }, 500);
     }
 
     private void scheduleGameEndTask() {
@@ -99,6 +106,9 @@ public class Game {
                 if (isTimeUp()) {
                     this.cancel();
                     String channelID = GameManager.getChannelID();
+
+                    // todo: make sure the channel is valid first!
+
                     TextChannel channel = getShardManager().getTextChannelById(channelID);
                     channel.sendMessage("Times up! Game has ended").queue();
                 }
@@ -109,15 +119,15 @@ public class Game {
         gameEndTimer.scheduleAtFixedRate(gameEndTask, 0, 1000);
     }
 
-    private boolean isTimeUp() {
-        long elapsedTime = System.currentTimeMillis() - startTime.getTime();
-        return elapsedTime > settings.getDefaultTimeLimit() * 1000L;
-    }
-
     private void cancelGameEndTask() {
         if (gameEndTask != null) {
             gameEndTask.cancel();
             gameEndTask = null;
         }
+    }
+
+    private boolean isTimeUp() {
+        long elapsedTime = System.currentTimeMillis() - startTime.getTime();
+        return elapsedTime > settings.getDefaultTimeLimit() * 1000L;
     }
 }
