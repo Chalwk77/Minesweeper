@@ -105,11 +105,9 @@ public class Game {
                 if (isTimeUp()) {
                     this.cancel();
                     String channelID = GameManager.getChannelID();
-
-                    // todo: make sure the channel is valid first!
-
                     TextChannel channel = getShardManager().getTextChannelById(channelID);
                     channel.sendMessage("Times up! Game has ended").queue();
+                    gameManager.removeGame(config.player);
                 }
             }
         };
